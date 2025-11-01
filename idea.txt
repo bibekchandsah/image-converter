@@ -10,4 +10,3 @@ git remote add origin https://github.com/bibekchandsah/image-converter.git
 git branch -M main
 git push -u origin main
 
-what library we can exclude more so that the file size will be less

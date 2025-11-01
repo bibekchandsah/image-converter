@@ -951,13 +951,13 @@ class ImageConverterWindow(QMainWindow):
         self.size_checkboxes = {}
         self.original_sizes = [
             ("Original", "original"),
-            ("48x48", (48, 48)),
-            ("192x192", (192, 192)),
             ("16x16", (16, 16)),
-            ("128x128", (128, 128)),
-            ("512x512", (512, 512)),
             ("32x32", (32, 32)),
+            ("48x48", (48, 48)),
+            ("128x128", (128, 128)),
             ("150x150", (150, 150)),
+            ("192x192", (192, 192)),
+            ("512x512", (512, 512)),
             ("Custom", "custom")
         ]
         
@@ -1026,31 +1026,6 @@ class ImageConverterWindow(QMainWindow):
         convert_layout = QHBoxLayout()
         convert_layout.addStretch()  # Add stretch before buttons to center them
         
-        # Preview button
-        self.preview_btn = QPushButton("👁️ Preview")
-        self.preview_btn.setMinimumHeight(35)
-        self.preview_btn.setMaximumWidth(120)
-        self.preview_btn.setEnabled(False)  # Initially disabled
-        self.preview_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #666;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                font-size: 13px;
-                font-weight: bold;
-                padding: 8px 16px;
-                margin-right: 10px;
-            }
-            QPushButton:hover {
-                background-color: #777;
-            }
-            QPushButton:disabled {
-                background-color: #444;
-            }
-        """)
-        convert_layout.addWidget(self.preview_btn)
-        
         self.convert_btn = QPushButton("🔄 Convert Image(s)")
         self.convert_btn.setMinimumHeight(35)  # Reduced from 50 to 35
         self.convert_btn.setMaximumWidth(200)  # Limit button width
@@ -1114,7 +1089,6 @@ class ImageConverterWindow(QMainWindow):
         self.fetch_btn.clicked.connect(self.fetch_from_url)
         self.url_input.returnPressed.connect(self.fetch_from_url)  # Enter key triggers fetch
         self.choose_location_btn.clicked.connect(self.choose_save_location)
-        self.preview_btn.clicked.connect(self.preview_images)
         self.convert_btn.clicked.connect(self.convert_images)
         self.cancel_btn.clicked.connect(self.cancel_conversion)
         self.size_checkboxes["custom"].toggled.connect(self.handle_custom_size)
@@ -1249,7 +1223,6 @@ class ImageConverterWindow(QMainWindow):
                 file_name = Path(file_path_or_url).name
                 self.status_label.setText(f"Loaded: {file_name}")
                 self.convert_btn.setEnabled(True)
-                self.preview_btn.setEnabled(True)
             else:
                 raise Exception("Invalid image file")
                 
@@ -1558,47 +1531,7 @@ class ImageConverterWindow(QMainWindow):
             print(f"Error generating preview data: {str(e)}")
             return []
     
-    def preview_images(self):
-        """Show preview dialog without converting"""
-        if not self.current_image_path:
-            self.show_message("warning", "Warning", "Please select an image first")
-            return
-        
-        # Get selected sizes
-        selected_sizes = []
-        for size_key, checkbox in self.size_checkboxes.items():
-            if checkbox.isChecked():
-                if size_key == "custom":
-                    selected_sizes.append(self.custom_size)
-                elif size_key != "original":
-                    selected_sizes.append(size_key)
-                else:
-                    selected_sizes.append("original")
-        
-        if not selected_sizes:
-            self.show_message("warning", "Warning", "Please select at least one size option")
-            return
-        
-        # Get output format and resize settings
-        output_format = self.format_combo.currentText().lower()
-        lock_aspect_ratio = self.lock_aspect_ratio.isChecked()
-        resize_mode = self.resize_mode_combo.currentText().lower() if lock_aspect_ratio else "stretch"
-        dpi = self.dpi_spinbox.value()
-        quality = self.quality_spinbox.value()
-        
-        # Generate preview data
-        self.status_label.setText("Generating preview...")
-        preview_data = self.generate_preview_data(selected_sizes, output_format, lock_aspect_ratio, resize_mode, dpi, quality)
-        
-        if not preview_data:
-            self.show_message("warning", "Error", "Failed to generate preview data")
-            self.status_label.setText("Preview failed")
-            return
-        
-        # Show preview dialog
-        preview_dialog = PreviewDialog(preview_data, dpi, quality, self)
-        preview_dialog.exec()
-        self.status_label.setText("Preview closed")
+
     
     def cancel_conversion(self):
         """Cancel the ongoing conversion"""
@@ -1607,7 +1540,6 @@ class ImageConverterWindow(QMainWindow):
             self.converter.wait(3000)  # Wait up to 3 seconds for thread to finish
             self.progress_bar.setVisible(False)
             self.convert_btn.setEnabled(True)
-            self.preview_btn.setEnabled(True)
             self.cancel_btn.setVisible(False)
             self.status_label.setText("Conversion cancelled")
     
@@ -1657,7 +1589,6 @@ class ImageConverterWindow(QMainWindow):
         self.progress_bar.setRange(0, len(selected_sizes))
         self.progress_bar.setValue(0)
         self.convert_btn.setEnabled(False)
-        self.preview_btn.setEnabled(False)
         self.cancel_btn.setVisible(True)
         self.status_label.setText("Starting conversion...")
         
@@ -1681,7 +1612,6 @@ class ImageConverterWindow(QMainWindow):
     def on_conversion_finished(self, output_files):
         self.progress_bar.setVisible(False)
         self.convert_btn.setEnabled(True)
-        self.preview_btn.setEnabled(True)
         self.cancel_btn.setVisible(False)
         
         file_list = "\n".join([Path(f).name for f in output_files])
@@ -1691,7 +1621,6 @@ class ImageConverterWindow(QMainWindow):
     def on_conversion_error(self, error_msg):
         self.progress_bar.setVisible(False)
         self.convert_btn.setEnabled(True)
-        self.preview_btn.setEnabled(True)
         self.cancel_btn.setVisible(False)
         self.show_message("critical", "Conversion Error", error_msg)
         self.status_label.setText("Conversion failed")
