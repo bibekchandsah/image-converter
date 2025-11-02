@@ -4,12 +4,6 @@ This guide explains how to compile the Image Converter GUI into a standalone exe
 
 ## 🚀 Quick Start
 
-### Windows (Recommended)
-```bash
-# Run the simple build script
-build_simple.bat
-```
-
 ### Advanced Build (All Platforms)
 ```bash
 # Run the advanced Python build script
@@ -36,13 +30,8 @@ pyinstaller --onefile --windowed --icon=icon.ico --name=ImageConverter --add-dat
 
 ## 🛠️ Build Options
 
-### Option 1: Simple Build (build_simple.bat)
-- **Best for**: Quick builds and testing
-- **Output**: Single executable file
-- **Size**: Larger file size (~50-80MB)
-- **Speed**: Faster startup, everything bundled
 
-### Option 2: Advanced Build (build_exe.py)
+### Option 1: Advanced Build (build_exe.py)
 - **Best for**: Distribution and production
 - **Output**: Optimized executable + portable package
 - **Features**: 
@@ -52,7 +41,7 @@ pyinstaller --onefile --windowed --icon=icon.ico --name=ImageConverter --add-dat
   - Creates portable package
   - Better error handling
 
-### Option 3: Manual Build
+### Option 2: Manual Build
 - **Best for**: Custom configurations
 - **Control**: Full control over PyInstaller options
 - **Flexibility**: Modify parameters as needed
@@ -126,7 +115,6 @@ pyinstaller --onefile --console --icon=icon.ico --name=ImageConverter_Debug main
 
 | Build Type | Size | Startup Time | Distribution |
 |------------|------|--------------|--------------|
-| Simple Build | ~60MB | Fast | Single file |
 | Advanced Build | ~45MB | Fast | Optimized |
 | Debug Build | ~65MB | Medium | With console |
 
@@ -175,12 +163,6 @@ codesign --sign "Developer ID Application: Your Name" ImageConverter
 - ✅ Error handling and logging
 - ✅ File size optimization
 
-### build_simple.bat Features
-- ✅ Quick and easy
-- ✅ Automatic PyInstaller check
-- ✅ Clean builds
-- ✅ Success/failure feedback
-- ✅ Windows optimized
 
 ## 🎉 Success Indicators
 

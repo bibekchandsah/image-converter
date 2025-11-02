@@ -10,3 +10,4 @@ git remote add origin https://github.com/bibekchandsah/image-converter.git
 git branch -M main
 git push -u origin main
 
+PyInstaller --onefile --windowed --name=ImageConverter --icon=icon.ico --add-data=icon.ico;. --add-data=icon.png;. --add-data=assets;assets --add-data=utils;utils --exclude-module=tkinter --exclude-module=matplotlib --exclude-module=numpy --exclude-module=scipy --exclude-module=pandas --clean --noconfirm main.py

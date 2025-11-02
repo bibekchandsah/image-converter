@@ -1,12 +1,5 @@
 # 🚀 Installation Guide
 
-## Quick Start (Windows)
-
-1. **Double-click `run_converter.bat`** - This will automatically:
-   - Check if Python is installed
-   - Install required dependencies
-   - Launch the Image Converter GUI
-
 ## Manual Installation
 
 ### Prerequisites
