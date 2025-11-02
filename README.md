@@ -2,6 +2,26 @@
 
 A modern Python GUI application built with PySide6 for converting and resizing images with advanced features including drag & drop support, clipboard paste, URL fetching, unit conversion, comprehensive preview system, and optimized multi-threading.
 
+## 📸 Screenshots
+
+### Main Interface
+![Image Converter Main Interface](imagepreview1.png)
+*Main application window showing the intuitive drag & drop interface, format options, and size selection controls*
+
+### Preview System
+![Image Converter Preview Dialog](imagepreview2.png)
+*Comprehensive preview dialog showing detailed conversion information before saving*
+
+## 🚀 Quick Start
+
+1. **📥 [Download the latest release](https://github.com/bibekchandsah/image-converter/releases)** - Get the ready-to-use executable
+2. **🖱️ Drag & drop** an image into the application
+3. **⚙️ Choose** your desired format and size options
+4. **👁️ Preview** your conversion settings
+5. **💾 Convert** and save your images!
+
+No Python installation required with the pre-built executable!
+
 ## ✨ Features
 
 ### 🎯 Input Methods
@@ -53,6 +73,18 @@ A modern Python GUI application built with PySide6 for converting and resizing i
 - **Resize Modes**: Stretch, Crop, Fit with aspect ratio control
 
 ## 🚀 Installation
+
+### Option 1: Download Pre-built Executable (Recommended)
+
+**📥 [Download Latest Release](https://github.com/bibekchandsah/image-converter/releases)**
+
+1. Go to [Releases · bibekchandsah/image-converter](https://github.com/bibekchandsah/image-converter/releases)
+2. Download the latest `ImageConverter.exe` file
+3. Run the executable directly - no installation required!
+
+*The pre-built executable includes all dependencies and works on Windows 10/11 without requiring Python installation.*
+
+### Option 2: Run from Source
 
 1. **Install Python 3.8+**
 
@@ -323,10 +355,12 @@ This project is open source and available under the MIT License.
 ## 👨‍💻 Author
 
 **Bibek**  
-Date: 30 Oct 2025 (Updated: 1 Nov 2025)  
+Date: 30 Oct 2025 (Updated: 2 Nov 2025)  
 Project: Image Converter GUI v2.0  
 Language: Python 3 (PySide6)  
 Features: Advanced unit conversion, preview system, multi-threading
+
+📦 **Latest builds available at**: [Releases · bibekchandsah/image-converter](https://github.com/bibekchandsah/image-converter/releases)
 
 ## 🤝 Contributing
 
