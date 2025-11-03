@@ -991,6 +991,12 @@ class ImageConverterWindow(QMainWindow):
                 font-family: 'Consolas', 'Monaco', monospace;
             }
         """)
+        # Set fixed width and enable text elision
+        self.save_location_label.setMinimumWidth(200)
+        self.save_location_label.setMaximumWidth(400)
+        self.save_location_label.setWordWrap(False)
+        # Set initial tooltip and display text
+        self.update_save_location_display(self.save_location)
         save_layout.addWidget(self.save_location_label)
         
         # Choose folder button
@@ -1268,7 +1274,63 @@ class ImageConverterWindow(QMainWindow):
         folder = QFileDialog.getExistingDirectory(self, "Choose Save Location", self.save_location)
         if folder:
             self.save_location = folder
-            self.save_location_label.setText(folder)
+            self.update_save_location_display(folder)
+    
+    def update_save_location_display(self, full_path):
+        """Update the save location display with truncated text and full path tooltip"""
+        from pathlib import Path
+        
+        # Set the full path as tooltip
+        self.save_location_label.setToolTip(f"Save location: {full_path}")
+        
+        # Get available width for text (accounting for padding and borders)
+        available_width = self.save_location_label.maximumWidth() - 20
+        
+        # Use QFontMetrics to calculate text width
+        font_metrics = self.save_location_label.fontMetrics()
+        
+        # If the full path fits, use it
+        if font_metrics.horizontalAdvance(full_path) <= available_width:
+            display_text = full_path
+        else:
+            # Create a smart truncated version
+            path_obj = Path(full_path)
+            
+            # Try different truncation strategies
+            if len(path_obj.parts) > 2:
+                # Strategy 1: Show drive + ... + last 2 folders
+                drive = path_obj.parts[0]
+                last_parts = path_obj.parts[-2:]
+                candidate = f"{drive}...{Path(*last_parts)}"
+                
+                if font_metrics.horizontalAdvance(candidate) <= available_width:
+                    display_text = candidate
+                else:
+                    # Strategy 2: Show drive + ... + last folder
+                    last_part = path_obj.parts[-1]
+                    candidate = f"{drive}...{last_part}"
+                    
+                    if font_metrics.horizontalAdvance(candidate) <= available_width:
+                        display_text = candidate
+                    else:
+                        # Strategy 3: Just show ...last_folder (truncated if needed)
+                        max_chars = (available_width // font_metrics.averageCharWidth()) - 3
+                        if max_chars > 0 and len(last_part) > max_chars:
+                            display_text = f"...{last_part[-max_chars:]}"
+                        else:
+                            display_text = f"...{last_part}"
+            else:
+                # For short paths, just truncate from the middle
+                max_chars = available_width // font_metrics.averageCharWidth() - 3
+                if max_chars > 6:  # Ensure we have room for meaningful text
+                    mid_point = len(full_path) // 2
+                    start_chars = max_chars // 2
+                    end_chars = max_chars - start_chars
+                    display_text = f"{full_path[:start_chars]}...{full_path[-end_chars:]}"
+                else:
+                    display_text = "..."
+        
+        self.save_location_label.setText(display_text)
     
     def handle_custom_size(self, checked):
         if checked:
