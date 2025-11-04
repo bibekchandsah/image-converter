@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QThread, Signal, QMimeData
 from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent, QFont, QClipboard, QKeySequence, QShortcut, QIcon
+from PySide6.QtWidgets import QApplication
 from converter import ImageConverter
 from downloader import ImageDownloader
 
@@ -37,6 +38,25 @@ def get_app_icon():
                 return icon
     return QIcon()  # Return empty icon if none found
 
+def center_window(window):
+    """Center a window on the screen"""
+    try:
+        # Get the primary screen
+        screen = QApplication.primaryScreen()
+        if screen:
+            screen_geometry = screen.availableGeometry()
+            window_geometry = window.frameGeometry()
+            
+            # Calculate center position
+            center_x = screen_geometry.center().x() - window_geometry.width() // 2
+            center_y = screen_geometry.center().y() - window_geometry.height() // 2
+            
+            # Move window to center
+            window.move(center_x, center_y)
+    except Exception as e:
+        print(f"Failed to center window: {e}")
+        # Fallback: use default positioning
+
 class PreviewDialog(QDialog):
     def __init__(self, preview_data, dpi=300, quality=90, parent=None):
         super().__init__(parent)
@@ -48,6 +68,9 @@ class PreviewDialog(QDialog):
         self.resize(800, 600)
         self.setup_dialog_icon()
         self.setup_ui()
+        
+        # Center the dialog
+        center_window(self)
     
     def setup_ui(self):
         layout = QVBoxLayout()
@@ -436,6 +459,12 @@ class CustomSizeDialog(QDialog):
         unit_layout.addWidget(self.unit_combo)
         layout.addLayout(unit_layout)
         
+        # Size inputs with lock - horizontal layout for cleaner design
+        size_container = QHBoxLayout()
+        
+        # Left side - Width and Height inputs
+        inputs_layout = QVBoxLayout()
+        
         # Width input
         width_layout = QHBoxLayout()
         width_layout.addWidget(QLabel("Width:"))
@@ -443,11 +472,11 @@ class CustomSizeDialog(QDialog):
         self.width_spin.setRange(0.1, 10000)
         self.width_spin.setValue(512)
         self.width_spin.setDecimals(1)
-        self.width_spin.valueChanged.connect(self.update_pixel_preview)
+        self.width_spin.valueChanged.connect(self.on_width_changed)
         width_layout.addWidget(self.width_spin)
         self.width_unit_label = QLabel("px")
         width_layout.addWidget(self.width_unit_label)
-        layout.addLayout(width_layout)
+        inputs_layout.addLayout(width_layout)
         
         # Height input
         height_layout = QHBoxLayout()
@@ -456,11 +485,51 @@ class CustomSizeDialog(QDialog):
         self.height_spin.setRange(0.1, 10000)
         self.height_spin.setValue(512)
         self.height_spin.setDecimals(1)
-        self.height_spin.valueChanged.connect(self.update_pixel_preview)
+        self.height_spin.valueChanged.connect(self.on_height_changed)
         height_layout.addWidget(self.height_spin)
         self.height_unit_label = QLabel("px")
         height_layout.addWidget(self.height_unit_label)
-        layout.addLayout(height_layout)
+        inputs_layout.addLayout(height_layout)
+        
+        size_container.addLayout(inputs_layout)
+        
+        # Right side - Lock button (positioned to the right)
+        lock_container = QVBoxLayout()
+        lock_container.addStretch()  # Push button to center vertically
+        
+        self.lock_button = QPushButton("🔒")
+        self.lock_button.setCheckable(True)
+        self.lock_button.setChecked(True)  # Locked by default
+        self.lock_button.setMaximumSize(40, 40)
+        self.lock_button.setMinimumSize(40, 40)
+        self.lock_button.setToolTip("Lock aspect ratio (maintain proportions)")
+        self.lock_button.setStyleSheet("""
+            QPushButton {
+                background-color: #0078d4;
+                color: white;
+                border: none;
+                border-radius: 15px;
+                font-size: 14px;
+                font-weight: bold;
+                margin-left: 10px;
+            }
+            QPushButton:hover {
+                background-color: #106ebe;
+            }
+            QPushButton:checked {
+                background-color: #0078d4;
+            }
+            QPushButton:!checked {
+                background-color: #666;
+            }
+        """)
+        self.lock_button.clicked.connect(self.toggle_aspect_lock)
+        
+        lock_container.addWidget(self.lock_button)
+        lock_container.addStretch()  # Push button to center vertically
+        
+        size_container.addLayout(lock_container)
+        layout.addLayout(size_container)
         
         # DPI input (for cm/inch conversions)
         dpi_layout = QHBoxLayout()
@@ -488,8 +557,50 @@ class CustomSizeDialog(QDialog):
         
         self.setLayout(layout)
         
+        # Initialize aspect ratio tracking
+        self.aspect_ratio = 1.0  # 512/512 = 1.0
+        self.updating_from_lock = False  # Prevent recursive updates
+        
         # Initialize unit display
         self.on_unit_changed("Pixels")
+        
+        # Center the dialog
+        center_window(self)
+    
+    def toggle_aspect_lock(self):
+        """Toggle the aspect ratio lock and update button appearance"""
+        is_locked = self.lock_button.isChecked()
+        if is_locked:
+            self.lock_button.setText("🔒")
+            self.lock_button.setToolTip("Lock aspect ratio (maintain proportions)")
+            # Update aspect ratio based on current values
+            width = self.width_spin.value()
+            height = self.height_spin.value()
+            if height > 0:
+                self.aspect_ratio = width / height
+        else:
+            self.lock_button.setText("🔓")
+            self.lock_button.setToolTip("Unlock aspect ratio (independent width/height)")
+    
+    def on_width_changed(self):
+        """Handle width change and update height if locked"""
+        if self.lock_button.isChecked() and not self.updating_from_lock:
+            self.updating_from_lock = True
+            width = self.width_spin.value()
+            new_height = width / self.aspect_ratio if self.aspect_ratio > 0 else width
+            self.height_spin.setValue(new_height)
+            self.updating_from_lock = False
+        self.update_pixel_preview()
+    
+    def on_height_changed(self):
+        """Handle height change and update width if locked"""
+        if self.lock_button.isChecked() and not self.updating_from_lock:
+            self.updating_from_lock = True
+            height = self.height_spin.value()
+            new_width = height * self.aspect_ratio
+            self.width_spin.setValue(new_width)
+            self.updating_from_lock = False
+        self.update_pixel_preview()
     
     def on_unit_changed(self, unit):
         """Handle unit change and update UI accordingly"""
@@ -544,6 +655,13 @@ class CustomSizeDialog(QDialog):
             height_in = round(current_height_px / dpi, 2)
             self.width_spin.setValue(width_in)
             self.height_spin.setValue(height_in)
+        
+        # Update aspect ratio after unit conversion
+        if self.lock_button.isChecked():
+            width = self.width_spin.value()
+            height = self.height_spin.value()
+            if height > 0:
+                self.aspect_ratio = width / height
         
         self.update_pixel_preview()
     
@@ -747,12 +865,15 @@ class ImageConverterWindow(QMainWindow):
         self.custom_size = (512, 512)
         
         self.setWindowTitle("Image Converter")
-        self.setGeometry(100, 100, 800, 700)
+        self.resize(800, 700)  # Set size first
         self.setup_window_icon()
         
         self.setup_ui()
         self.setup_connections()
         self.setup_clipboard()
+        
+        # Center the window after everything is set up
+        center_window(self)
     
     def resizeEvent(self, event):
         """Handle window resize to update image preview"""
@@ -1271,6 +1392,8 @@ class ImageConverterWindow(QMainWindow):
         elif msg_type == "critical":
             msg_box.setIcon(QMessageBox.Critical)
         
+        # Center the message box
+        center_window(msg_box)
         msg_box.exec()
     
     def load_image(self, file_path_or_url):
