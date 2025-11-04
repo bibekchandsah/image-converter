@@ -1084,10 +1084,61 @@ class ImageConverterWindow(QMainWindow):
         self.progress_bar.setVisible(False)
         main_layout.addWidget(self.progress_bar)
         
-        # Status label
+        # Status bar layout
+        status_layout = QHBoxLayout()
+        
+        # Status label (left side)
         self.status_label = QLabel("Ready")
         self.status_label.setStyleSheet("color: #666; font-style: italic;")
-        main_layout.addWidget(self.status_label)
+        status_layout.addWidget(self.status_label)
+        
+        # Stretch to push links to the right
+        status_layout.addStretch()
+        
+        # Contribute link
+        self.contribute_label = QLabel("Contribute")
+        self.contribute_label.setStyleSheet("""
+            QLabel {
+                color: #28a745;
+                font-style: italic;
+                font-size: 11px;
+                text-decoration: underline;
+                margin-right: 10px;
+            }
+            QLabel:hover {
+                color: #1e7e34;
+                background-color: rgba(30, 126, 52, 0.1);
+                border-radius: 3px;
+                padding: 2px 4px;
+            }
+        """)
+        self.contribute_label.setCursor(Qt.PointingHandCursor)
+        self.contribute_label.setToolTip("Contribute to the project on GitHub")
+        self.contribute_label.mousePressEvent = self.open_github_repository
+        status_layout.addWidget(self.contribute_label)
+        
+        # Developer credit (right side)
+        self.developer_label = QLabel("Developed by Bibek")
+        self.developer_label.setStyleSheet("""
+            QLabel {
+                color: #0078d4;
+                font-style: italic;
+                font-size: 11px;
+                text-decoration: underline;
+            }
+            QLabel:hover {
+                color: #106ebe;
+                background-color: rgba(16, 110, 190, 0.1);
+                border-radius: 3px;
+                padding: 2px 4px;
+            }
+        """)
+        self.developer_label.setCursor(Qt.PointingHandCursor)
+        self.developer_label.setToolTip("Visit developer's website")
+        self.developer_label.mousePressEvent = self.open_developer_website
+        status_layout.addWidget(self.developer_label)
+        
+        main_layout.addLayout(status_layout)
     
     def setup_connections(self):
         self.drop_area.file_dropped.connect(self.load_image)
@@ -1099,6 +1150,36 @@ class ImageConverterWindow(QMainWindow):
         self.cancel_btn.clicked.connect(self.cancel_conversion)
         self.size_checkboxes["custom"].toggled.connect(self.handle_custom_size)
         self.lock_aspect_ratio.toggled.connect(self.toggle_resize_mode)
+    
+    def open_developer_website(self, event):
+        """Open developer's website when the credit label is clicked"""
+        import webbrowser
+        try:
+            webbrowser.open("https://www.bibekchandsah.com.np/")
+        except Exception as e:
+            print(f"Failed to open website: {e}")
+            # Fallback: show a message with the URL
+            self.show_message("information", "Developer Website", 
+                            "Visit: https://www.bibekchandsah.com.np/\n\n(URL copied to clipboard)")
+            # Copy URL to clipboard as fallback
+            from PySide6.QtWidgets import QApplication
+            clipboard = QApplication.clipboard()
+            clipboard.setText("https://www.bibekchandsah.com.np/")
+    
+    def open_github_repository(self, event):
+        """Open GitHub repository when the contribute label is clicked"""
+        import webbrowser
+        try:
+            webbrowser.open("https://github.com/bibekchandsah/image-converter")
+        except Exception as e:
+            print(f"Failed to open GitHub repository: {e}")
+            # Fallback: show a message with the URL
+            self.show_message("information", "GitHub Repository", 
+                            "Visit: https://github.com/bibekchandsah/image-converter\n\n(URL copied to clipboard)")
+            # Copy URL to clipboard as fallback
+            from PySide6.QtWidgets import QApplication
+            clipboard = QApplication.clipboard()
+            clipboard.setText("https://github.com/bibekchandsah/image-converter")
     
     def setup_clipboard(self):
         """Setup clipboard functionality for pasting images"""
